@@ -1,0 +1,88 @@
+const baseURL = "https://latest.currency-api.pages.dev/v1/currencies";
+
+const dropdowns = document.querySelectorAll(".dropdown select");
+const btn = document.querySelector("form button");
+const fromCurr = document.querySelector(".from select");
+const toCurr = document.querySelector(".to select");
+
+//for the dropdown list of all the countries and their country code
+
+for(let select of dropdowns){
+    for(currCode in countryList){
+        let newOption = document.createElement("option");
+        newOption.innerText = currCode;
+        newOption.value = currCode;
+        if(select.name === "from" && currCode === "USD"){
+            newOption.selected = "selected";
+        }else if(select.name === "To" && currCode === "NPR"){
+            newOption.selected = "selected";
+        }
+        select.append(newOption);
+        
+    }
+
+    select.addEventListener("change", (evt)=>{
+        update_flag(evt.target);
+    });
+   
+
+}
+
+
+
+
+//UPdating the excahnge rate through api
+
+const updateExcahngerate = async () => {
+
+    let amount = document.querySelector(".amount input");
+    let amtVal = amount.value;
+    if (amtVal === "" || amtVal < 1){
+        amtVal = 1;
+        amount.value="1";
+    }
+
+    // console.log(fromCurr.value , toCurr.value);
+
+    const URL =`${baseURL}/${fromCurr.value.toLowerCase()}.json`;
+    // console.log(URL);
+    let response = await fetch(URL);
+    // console.log(response);
+    let data = await response.json();
+    
+    let from = fromCurr.value.toLowerCase();
+    let to = toCurr.value.toLowerCase();
+
+    let rate = data[from];
+    let finalrate = rate[to];
+
+
+    let finalValue = amtVal * finalrate;
+    console.log(finalValue);
+
+
+    const msg = document.querySelector(".msg");
+
+    msg.innerText = `${amtVal} ${fromCurr.value} = ${finalValue} ${toCurr.value}`;
+
+};
+
+//updating the flag value for every country that we select
+
+const update_flag = (element) =>{
+    let currCode = element.value;
+    let countryCode = countryList[currCode];
+    let newsrc = `https://flagsapi.com/${countryCode}/flat/64.png`;
+    let img = element.parentElement.querySelector("img");
+    img.src = newsrc;
+};
+
+btn.addEventListener("click", async (evt)=>{
+    evt.preventDefault();
+    updateExcahngerate();
+   
+});
+
+window.addEventListener("load", () => {
+    updateExcahngerate();
+});
